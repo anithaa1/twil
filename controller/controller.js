@@ -44,10 +44,10 @@ router.post('/signin', async (req, res) => {
     }
 });
 router.post('/forget', async(req, res) =>{
-    const { Email } = req.query;
+    const { email } = req.query;
   
     try {
-      const result = await service.ForgetPassword(Email, req.body.newpassword, req.body.confirmpassword);
+      const result = await service.ForgetPassword(Email);
       return helper.SendResponse(res, result);
     } catch (err) {
       console.error(err);

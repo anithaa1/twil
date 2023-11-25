@@ -3,6 +3,7 @@ const user=db.user
 const helper=require("../lib/helper")
 const jwt=require("../lib/auth")
 const hashing=require("../lib/password")
+const email=require("../lib/email")
 const { date } = require("joi")
 //const jwt=require("jsonwebtoken")
 //require('dotenv').config();
@@ -126,28 +127,44 @@ async function login( {email, password} ) {
 //     return res.send(err)
 //   }}
 async function ForgetPassword(req, res) {
-  const { email } = req.query;
+  const { email} = req.body;
 
   try {
     const oldUser = await user.findOne({ where: { email: email } });
 
     if (!oldUser) {
-      
       return res.json({ isSuccess: false, message: "No user found with that email address!" });
     }
+
+    // Assuming you have a template function for generating the email HTML
+    const htmlToSend = template(replacements);
+    const mailOptions = {
+      to: email,
+      from: "mesh@dmarc.com",
+      subject: "Welcome to DMARC! Please Change or reset your password.",
+      html: htmlToSend,
+    };
+
+    // Assuming smtpTransport is properly configured and defined
+    await smtpTransport.sendMail(mailOptions);
+
+    // Response for successful email sending
+    res.response = await helper.SendResponse(200, {}, `A reset email has been sent to ${email}.`);
+    
+    // If you're in a function where `next` is available, you can call it here
+    // return next();
+
+    // Continue with password reset logic
 
     // Assuming you have a forgetPass model or object, you should define it before using it
     const forgetPass = oldUser; // Replace with your actual forgetPass object or model
 
-    const newPassword = req.body.newpassword;
-    const confirmPassword = req.body.confirmpassword;
-
-    if (newPassword !== confirmPassword) {
+    if (newpassword !== confirmpassword) {
       return res.json({ isSuccess: false, message: "Password mismatch" });
     }
 
     // Encrypt the password
-    const encPass = hashing.encPassword(newPassword);
+    const encPass = hashing.encPassword(newpassword);
 
     // Update forgetPass with the new password and salt
     forgetPass.password = encPass.hash;
@@ -163,5 +180,6 @@ async function ForgetPassword(req, res) {
     return res.json({ isSuccess: false, message: "An error occurred while processing your request." });
   }
 }
+
 
 module.exports={signUp:signUp,login:login, ForgetPassword: ForgetPassword/*signIn:signIn,getOneUser:getOneUser*/}
