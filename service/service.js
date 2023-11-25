@@ -126,10 +126,10 @@ async function login( {email, password} ) {
 //     return res.send(err)
 //   }}
 async function ForgetPassword(req, res) {
-  const { Email } = req.query;
+  const { email } = req.query;
 
   try {
-    const oldUser = await user.findOne({ where: { Email: Email } });
+    const oldUser = await user.findOne({ where: { email: email } });
 
     if (!oldUser) {
       
