@@ -216,11 +216,11 @@ async function ResetPassword(req,res) {
           
       }
     //DECRYPT PASSWORD
-      const verifyPassword = hash.decryptPassword(oldPassword, requiredPassword, requiredSalt);
+      const verifyPassword = hashing.decPassword(oldPassword, requiredPassword, requiredSalt);
 console.log("verify",verifyPassword);
       //ENCRYPT PASSWORD
       if (verifyPassword) {
-          const encPass = hash.encryptPassword(newPassword);
+          const encPass = hashing.encPassword(newPassword);
 console.log("enc",encPass);
           passUpdate.dataValues.password = encPass.hash;
           passUpdate.dataValues.salt = encPass.salt;
