@@ -51,7 +51,7 @@ router.post('/forget', async(req, res) =>{
       return helper.SendResponse(res, result);
     } catch (err) {
       console.error(err);
-      return helper.SendErrorResponse(res, 500, "An error occurred while processing your request.");
+      return helper.SendErrorResponse(err, res);
     }
   })
   router.post('/signout',async(req,res)=>{
