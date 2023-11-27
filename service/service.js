@@ -215,10 +215,7 @@ async function ResetPassword(req,res) {
       
           
       }
-console.log("sdss",oldPassword);
-console.log("ewe",requiredPassword);
-console.log("rytuyue",requiredSalt);
-      //DECRYPT PASSWORD
+    //DECRYPT PASSWORD
       const verifyPassword = hash.decryptPassword(oldPassword, requiredPassword, requiredSalt);
 console.log("verify",verifyPassword);
       //ENCRYPT PASSWORD
@@ -237,23 +234,26 @@ console.log("enc",encPass);
       return { isSuccess: false, message: "Unable to access" }
   }
 }
-async function LogOutUser(req,res) {
-  debugger
+async function LogOutUser(req, res) {
+  debugger;
 
   try {
-      const outUser = await user.findOne({where:{ id: req.params.id }})
-if(!outUser){
-  return res.json( { message: "user does not exist!"})
-}
-outUser.token = null;
-outUser.refreshtoken = null;
-      var data = await outUser.save();
-      console.log("out",data);
-      return res.json( { message: "Logout Successfully!", data: data })
+    const outUser = await user.findOne({ where: { id: req.params.id } });
     
+    if (!outUser) {
+      return res.json({ message: "User does not exist!" });
+    }
+
+    outUser.token = null;
+    outUser.refreshtoken = null;
+
+    var data = await outUser.save();
+    console.log("out", data);
+    
+    return res.json({ message: "Logout Successfully!", data: data });
   } catch (err) {
-    console.log("err",err);
-      return res.json( { message: "Unable to Logout!" })
+    console.log("err", err);
+    return res.json({ message: "Unable to Logout!" });
   }
 }
 

@@ -54,18 +54,30 @@ router.post('/forget', async(req, res) =>{
       return helper.SendErrorResponse(err, res);
     }
   })
-  router.post('/signout',async(req,res)=>{
-    const{id}=req.params.id;
-    try{
-        const result =await service.LogOutUser(id)
-        return helper.SendResponse(res,result);
+  router.post('/reset', async(req, res) =>{
+    const { email } = req.query
+    const {oldpassword,newpassword,confirmpassword}=req.body;
+  
+    try {
+      const result = await service.ResetPassword(req,res);
+      return helper.SendResponse(res, result);
+    } catch (err) {
+      console.error(err);
+      return helper.SendErrorResponse(err, res);
     }
-    catch(err){
-        console.error(err)
-        return helper.SendErrorResponse(res,500,"something went wrong")
-    }
-    
   })
+  router.post('/signout/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      const result = await service.LogOutUser(req, res); // Pass req to the function
+      return helper.SendResponse(res, result);
+    } catch (err) {
+      console.error(err);
+      return helper.SendErrorResponse(err,res);
+    }
+  });
+  
 // router.get('/getUser',async(req,res)=>{
 //     try {
 //          var input = req.headers;
