@@ -133,7 +133,7 @@ async function ForgetPassword(email) {
     const oldUser = await user.findOne({ where: { email: email } });
 
     if (!oldUser) {
-      return res.json({ isSuccess: false, message: "No user found with that email address!" });
+      return { isSuccess: false, message: "No user found with that email address!" };
     }
 
     // Assuming you have a template function for generating the email HTML
@@ -142,7 +142,9 @@ async function ForgetPassword(email) {
     to: email,
     from: "mesh@dmarc.com",
     subject: "Welcome to DMARC! Please Change or reset your password.",
-    text: "Hello"
+   html: `<h1>Please click the below link for reset password<h1>
+            <h6><a>${process.env.RESET_LINK}</a></h6>
+            `
 };
 smtpTransport.sendMail(mailOptions).then(res => {
     console.log("Working", res)
@@ -190,7 +192,7 @@ smtpTransport.sendMail(mailOptions).then(res => {
 //     return res.json({ isSuccess: false, message: "An error occurred while processing your request." });
 //   }
 // }
-async function ResetPassword(req,res) {
+async function ResetPassword(req) {
   const inputdata=req.query;
   const resetPass=req.body;
   console.log("dfdgg",inputdata);
@@ -201,41 +203,35 @@ async function ResetPassword(req,res) {
       //DB PASSWORD
       const requiredPassword = passUpdate.dataValues.password;
       const requiredSalt = passUpdate.dataValues.salt;
-//console.log("paas",requiredPassword)
-//console.log("salt",requiredSalt);
+console.log("paas",requiredPassword)
+console.log("salt",requiredSalt);
       //INPUT PASSWORD
-      const oldPassword = inputdata.oldpassword;
+      //const oldPassword = inputdata.oldpassword;
     
       const newPassword = resetPass.newpassword;
       const confirmPassword = resetPass.confirmpassword;
-      console.log("new",newPassword);
-      console.log("confirm",confirmPassword);
+      //console.log("new",newPassword);
+      //console.log("confirm",confirmPassword);
       if (newPassword != confirmPassword) {
-       return res.status(200).json({ message:"New password mismatch with Confirm password" });
-      
-          
+       return { message:"New password mismatch with Confirm password" };
       }
-    //DECRYPT PASSWORD
-      const verifyPassword = hashing.decPassword(oldPassword, requiredPassword, requiredSalt);
-console.log("verify",verifyPassword);
       //ENCRYPT PASSWORD
-      if (verifyPassword) {
-          const encPass = hashing.encPassword(newPassword);
+      const encPass =  hashing.encPassword(newPassword);
+  
 console.log("enc",encPass);
           passUpdate.dataValues.password = encPass.hash;
           passUpdate.dataValues.salt = encPass.salt;
 
           const saveUpdatedPass = await passUpdate.save();
           console.log("save",saveUpdatedPass);
-          return res.status(200).json( { isSuccess: true, message: "Password Updated Successfully", data: saveUpdatedPass })
-      }
-      return { isSuccess: false, message: "Unable to reset password" }
+          return { isSuccess: true, message: "Password Updated Successfully", data: saveUpdatedPass }
+
   } catch (err) {
       return { isSuccess: false, message: "Unable to access" }
   }
 }
-async function LogOutUser(req, res) {
-  debugger;
+async function LogOutUser(req) {
+  debugger
 
   try {
     const outUser = await user.findOne({ where: { id: req.params.id } });
@@ -245,15 +241,15 @@ async function LogOutUser(req, res) {
     }
 
     outUser.token = null;
-    outUser.refreshtoken = null;
+    outUser.refresh_Token = null;
 
     var data = await outUser.save();
     console.log("out", data);
     
-    return res.json({ message: "Logout Successfully!", data: data });
+    return { message: "Logout Successfully!", data: data };
   } catch (err) {
     console.log("err", err);
-    return res.json({ message: "Unable to Logout!" });
+    return { message: "Unable to Logout!" };
   }
 }
 

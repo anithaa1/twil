@@ -55,8 +55,8 @@ router.post('/forget', async(req, res) =>{
     }
   })
   router.post('/reset', async(req, res) =>{
-    const { email } = req.query
-    const {oldpassword,newpassword,confirmpassword}=req.body;
+    // const { email } = req.query
+    // const {oldpassword,newpassword,confirmpassword}=req.body;
   
     try {
       const result = await service.ResetPassword(req,res);
@@ -67,10 +67,10 @@ router.post('/forget', async(req, res) =>{
     }
   })
   router.post('/signout/:id', async (req, res) => {
-    const { id } = req.params;
+    //const { id } = req.params.id;
   
     try {
-      const result = await service.LogOutUser(id); // Pass req to the function
+      const result = await service.LogOutUser(req); // Pass req to the function
       return helper.SendResponse(res, result);
     } catch (err) {
       console.error(err);
