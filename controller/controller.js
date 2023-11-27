@@ -44,15 +44,27 @@ router.post('/signin', async (req, res) => {
     }
 });
 router.post('/forget', async(req, res) =>{
-    const { email } = req.query;
+    const { email } = req.body;
   
     try {
-      const result = await service.ForgetPassword(Email);
+      const result = await service.ForgetPassword(email);
       return helper.SendResponse(res, result);
     } catch (err) {
       console.error(err);
       return helper.SendErrorResponse(res, 500, "An error occurred while processing your request.");
     }
+  })
+  router.post('/signout',async(req,res)=>{
+    const{id}=req.params.id;
+    try{
+        const result =await service.LogOutUser(id)
+        return helper.SendResponse(res,result);
+    }
+    catch(err){
+        console.error(err)
+        return helper.SendErrorResponse(res,500,"something went wrong")
+    }
+    
   })
 // router.get('/getUser',async(req,res)=>{
 //     try {

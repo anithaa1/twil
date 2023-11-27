@@ -3,7 +3,7 @@ const user=db.user
 const helper=require("../lib/helper")
 const jwt=require("../lib/auth")
 const hashing=require("../lib/password")
-const email=require("../lib/email")
+const  { smtpTransport }=require("../lib/email")
 const { date } = require("joi")
 //const jwt=require("jsonwebtoken")
 //require('dotenv').config();
@@ -126,8 +126,8 @@ async function login( {email, password} ) {
 //   {
 //     return res.send(err)
 //   }}
-async function ForgetPassword(req, res) {
-  const { email} = req.body;
+async function ForgetPassword(email) {
+ 
 
   try {
     const oldUser = await user.findOne({ where: { email: email } });
@@ -137,49 +137,125 @@ async function ForgetPassword(req, res) {
     }
 
     // Assuming you have a template function for generating the email HTML
-    const htmlToSend = template(replacements);
-    const mailOptions = {
-      to: email,
-      from: "mesh@dmarc.com",
-      subject: "Welcome to DMARC! Please Change or reset your password.",
-      html: htmlToSend,
-    };
-
-    // Assuming smtpTransport is properly configured and defined
-    await smtpTransport.sendMail(mailOptions);
+   // const htmlToSend = template(replacements);
+   var mailOptions = {
+    to: email,
+    from: "mesh@dmarc.com",
+    subject: "Welcome to DMARC! Please Change or reset your password.",
+    text: "Hello"
+};
+smtpTransport.sendMail(mailOptions).then(res => {
+    console.log("Working", res)
+}).catch(err => {
+    console.log(err)
+})
 
     // Response for successful email sending
-    res.response = await helper.SendResponse(200, {}, `A reset email has been sent to ${email}.`);
+   
+    return {isSuccess:true,message:"email send succesfully"};
+  } catch (error) {
+    console.error(error);
+    // Handle the error and return an appropriate response
     
+    return {error:"email is not send"};
+  }
+}
     // If you're in a function where `next` is available, you can call it here
     // return next();
 
     // Continue with password reset logic
 
     // Assuming you have a forgetPass model or object, you should define it before using it
-    const forgetPass = oldUser; // Replace with your actual forgetPass object or model
+    //const forgetPass = oldUser; 
+    // Replace with your actual forgetPass object or model
 
-    if (newpassword !== confirmpassword) {
-      return res.json({ isSuccess: false, message: "Password mismatch" });
-    }
+    // if (newpassword !== confirmpassword) {
+    //   return res.json({ isSuccess: false, message: "Password mismatch" });
+    // }
 
     // Encrypt the password
-    const encPass = hashing.encPassword(newpassword);
+//     const encPass = hashing.encPassword(newpassword);
 
-    // Update forgetPass with the new password and salt
-    forgetPass.password = encPass.hash;
-    forgetPass.salt = encPass.salt;
+//     // Update forgetPass with the new password and salt
+//     forgetPass.password = encPass.hash;
+//     forgetPass.salt = encPass.salt;
 
-    // Save the changes to the database
-    const chgPass = await forgetPass.save();
+//     // Save the changes to the database
+//     const chgPass = await forgetPass.save();
 
-    return res.json({ isSuccess: true, message: "Password changed successfully!", data: chgPass });
+//     return res.json({ isSuccess: true, message: "Password changed successfully!", data: chgPass });
+//   } catch (err) {
+//     // Handle any unexpected errors
+//     console.error(err);
+//     return res.json({ isSuccess: false, message: "An error occurred while processing your request." });
+//   }
+// }
+async function ResetPassword(req,res) {
+  const inputdata=req.query;
+  const resetPass=req.body;
+  console.log("dfdgg",inputdata);
+  console.log("efed",resetPass);
+  try {
+      const passUpdate = await user.findOne({where:{ email: inputdata.email }});
+      console.log("dfdg",passUpdate.dataValues)
+      //DB PASSWORD
+      const requiredPassword = passUpdate.dataValues.password;
+      const requiredSalt = passUpdate.dataValues.salt;
+//console.log("paas",requiredPassword)
+//console.log("salt",requiredSalt);
+      //INPUT PASSWORD
+      const oldPassword = inputdata.oldpassword;
+    
+      const newPassword = resetPass.newpassword;
+      const confirmPassword = resetPass.confirmpassword;
+      console.log("new",newPassword);
+      console.log("confirm",confirmPassword);
+      if (newPassword != confirmPassword) {
+       return res.status(200).json({ message:"New password mismatch with Confirm password" });
+      
+          
+      }
+console.log("sdss",oldPassword);
+console.log("ewe",requiredPassword);
+console.log("rytuyue",requiredSalt);
+      //DECRYPT PASSWORD
+      const verifyPassword = hash.decryptPassword(oldPassword, requiredPassword, requiredSalt);
+console.log("verify",verifyPassword);
+      //ENCRYPT PASSWORD
+      if (verifyPassword) {
+          const encPass = hash.encryptPassword(newPassword);
+console.log("enc",encPass);
+          passUpdate.dataValues.password = encPass.hash;
+          passUpdate.dataValues.salt = encPass.salt;
+
+          const saveUpdatedPass = await passUpdate.save();
+          console.log("save",saveUpdatedPass);
+          return res.status(200).json( { isSuccess: true, message: "Password Updated Successfully", data: saveUpdatedPass })
+      }
+      return { isSuccess: false, message: "Unable to reset password" }
   } catch (err) {
-    // Handle any unexpected errors
-    console.error(err);
-    return res.json({ isSuccess: false, message: "An error occurred while processing your request." });
+      return { isSuccess: false, message: "Unable to access" }
+  }
+}
+async function LogOutUser(req,res) {
+  debugger
+
+  try {
+      const outUser = await user.findOne({where:{ id: req.params.id }})
+if(!outUser){
+  return res.json( { message: "user does not exist!"})
+}
+outUser.token = null;
+outUser.refreshtoken = null;
+      var data = await outUser.save();
+      console.log("out",data);
+      return res.json( { message: "Logout Successfully!", data: data })
+    
+  } catch (err) {
+    console.log("err",err);
+      return res.json( { message: "Unable to Logout!" })
   }
 }
 
 
-module.exports={signUp:signUp,login:login, ForgetPassword: ForgetPassword/*signIn:signIn,getOneUser:getOneUser*/}
+module.exports={signUp:signUp,login:login, ForgetPassword: ForgetPassword,LogOutUser:LogOutUser,ResetPassword:ResetPassword/*signIn:signIn,getOneUser:getOneUser*/}
