@@ -70,7 +70,7 @@ router.post('/forget', async(req, res) =>{
     const { id } = req.params;
   
     try {
-      const result = await service.LogOutUser(req, res); // Pass req to the function
+      const result = await service.LogOutUser(id); // Pass req to the function
       return helper.SendResponse(res, result);
     } catch (err) {
       console.error(err);
