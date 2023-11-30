@@ -32,7 +32,7 @@ router.post('/signup', async (req, res) => {
 router.post('/signin', async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log("Request Body:", req.body);
+        console.log("Req body:", req.body);
 
         const newResult = await service.login({ email, password});
 
